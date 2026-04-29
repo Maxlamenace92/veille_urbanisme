@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veille Urbanisme Paris</title>
+<style>
+:root { color-scheme: light; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f7fa; color: #1a1a2e; }
+
+#login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #1F4E79 0%, #2d6da3 100%); }
+.login-box { background: white; border-radius: 12px; padding: 40px; width: 340px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); text-align: center; }
+.login-box h1 { font-size: 20px; color: #1F4E79; margin-bottom: 4px; }
+.login-box p { font-size: 13px; color: #888; margin-bottom: 24px; }
+.login-box input { width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; }
+.login-box input:focus { border-color: #1F4E79; }
+.login-box button { width: 100%; padding: 12px; margin-top: 12px; background: #1F4E79; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.login-box button:hover { background: #163a5c; }
+.login-error { color: #e74c3c; font-size: 12px; margin-top: 8px; display: none; }
+
+.cta-bar { background: #ff3d00; }
+.cta-link {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 14px 20px;
+  background: linear-gradient(120deg, #ff3d00 0%, #ff8a00 35%, #ffd000 50%, #ff8a00 65%, #ff3d00 100%);
+  background-size: 250% 100%;
+  color: white; font-weight: 800; font-size: 16px; letter-spacing: 0.4px;
+  text-decoration: none; text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  animation: cta-shine 4s linear infinite, cta-pulse 1.6s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(255,61,0,0.55), 0 4px 14px rgba(0,0,0,0.18);
+  border-bottom: 3px solid #b32d00;
+}
+.cta-link:hover { animation-play-state: paused; transform: translateY(-1px); box-shadow: 0 8px 22px rgba(0,0,0,0.28); }
+.cta-link .arrow { font-size: 22px; }
+.cta-link .badge { background: rgba(0,0,0,0.25); padding: 3px 10px; border-radius: 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; }
+@keyframes cta-shine { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
+@keyframes cta-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,61,0,0.55),0 4px 14px rgba(0,0,0,0.18)} 50%{box-shadow:0 0 0 12px rgba(255,61,0,0),0 4px 14px rgba(0,0,0,0.18)} }
+
+#app { display: none; padding: 0 20px 20px; max-width: 1600px; margin: 0 auto; }
+.app-inner { padding-top: 16px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.header-left h1 { font-size: 22px; color: #1F4E79; }
+.header-left .subtitle { font-size: 12px; color: #888; margin-top: 2px; }
+.btn-logout { padding: 8px 16px; background: none; border: 1px solid #ccc; border-radius: 6px; font-size: 12px; color: #666; cursor: pointer; }
+
+.stats { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.stat-card { background: white; border-radius: 10px; padding: 12px 16px; flex: 1; min-width: 110px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.stat-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: #888; }
+.stat-card .value { font-size: 24px; font-weight: 700; color: #1F4E79; }
+
+.legend { display: flex; gap: 16px; margin-bottom: 10px; flex-wrap: wrap; font-size: 12px; color: #555; align-items: center; }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-dot { width: 14px; height: 14px; border-radius: 3px; }
+.dot-yellow { background: #ffeeba; }
+.dot-green { background: #c3e6cb; }
+.legend-pastille { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff7a00; box-shadow: 0 0 0 2px rgba(255,122,0,0.18); }
+
+.filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+.filters select, .filters input { padding: 7px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; background: white; }
+.filters select:focus, .filters input:focus { outline: none; border-color: #1F4E79; }
+.filter-label { font-size: 11px; color: #666; font-weight: 600; }
+
+.tabs { display: flex; gap: 0; margin-bottom: 0; }
+.tab { padding: 10px 24px; background: #e8edf2; border: none; cursor: pointer; font-size: 14px; font-weight: 600; color: #666; border-radius: 8px 8px 0 0; transition: background 0.15s; }
+.tab:hover { background: #d8e0e8; }
+.tab.active { background: white; color: #1F4E79; box-shadow: 0 -2px 4px rgba(0,0,0,0.04); }
+.tab .cnt { background: #1F4E79; color: white; font-size: 10px; padding: 2px 7px; border-radius: 10px; margin-left: 6px; }
+
+.sort-info { font-size: 11px; color: #1F4E79; background: #e8f0fb; padding: 6px 12px; border-radius: 0 8px 0 0; display: inline-block; margin-bottom: 0; }
+.sort-info b { font-weight: 700; }
+
+.table-wrap { background: white; border-radius: 0 8px 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+thead th { background: #1F4E79; color: white; padding: 10px 8px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; position: sticky; top: 0; white-space: nowrap; cursor: pointer; user-select: none; }
+thead th:hover { background: #163a5c; }
+thead th .sort-arrow { margin-left: 4px; font-size: 11px; }
+thead th.active-sort { background: #163a5c; }
+thead th.active-sort .sort-arrow { color: #ffd166; font-weight: 700; }
+tbody tr { border-bottom: 1px solid #eee; }
+tbody tr:hover { filter: brightness(0.97); }
+tbody td { padding: 8px 8px; vertical-align: top; }
+tbody td.td-pst { width: 22px; text-align: center; padding-left: 6px; padding-right: 0; }
+tbody td.td-ref { white-space: nowrap; font-weight: 500; width: 150px; }
+tbody td.td-dem { width: 150px; }
+tbody td.td-adr { width: 190px; }
+tbody td.td-arr { width: 50px; text-align: center; }
+tbody td.td-obj { width: 280px; position: relative; }
+tbody td.td-dd, tbody td.td-dr { width: 85px; white-space: nowrap; }
+tbody td.td-ana { width: 130px; }
+
+.obj-text { max-height: 38px; overflow: hidden; line-height: 1.4; transition: max-height 0.3s; }
+.obj-text.expanded { max-height: 600px; }
+.btn-expand { display: inline-block; margin-top: 2px; padding: 1px 6px; font-size: 10px; background: #e8edf2; border: none; border-radius: 3px; cursor: pointer; color: #1F4E79; font-weight: 600; }
+.btn-expand:hover { background: #d0d8e2; }
+
+.row-enseigne { background: #fff3cd !important; }
+.row-luxe { background: #d4edda !important; }
+
+.pastille { display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: #ff7a00; box-shadow: 0 0 0 2px rgba(255,122,0,0.22); cursor: help; vertical-align: middle; }
+
+.tag { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 600; margin: 1px; }
+.tag-rue { background: #fddede; color: #a94442; }
+.tag-cour { background: #d9edf7; color: #31708f; }
+.tag-int { background: #e8e8e8; color: #555; }
+.tag-ech { background: #f0ad4e; color: white; }
+.tag-pal { background: #d9534f; color: white; }
+.tag-toi { background: #b8d8ff; color: #2c5aa0; }
+.tag-inc { background: #f5f5f5; color: #999; }
+
+#loading { text-align: center; padding: 60px; color: #888; }
+.spinner { width: 36px; height: 36px; border: 4px solid #e0e0e0; border-top-color: #1F4E79; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.pagination { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; font-size: 13px; color: #666; }
+.pagination button { padding: 6px 14px; border: 1px solid #ddd; background: white; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.pagination button:disabled { opacity: 0.4; cursor: default; }
+.pagination button:hover:not(:disabled) { border-color: #1F4E79; color: #1F4E79; }
+
+@media (max-width: 768px) {
+  .stats { flex-direction: column; }
+  .filters { flex-direction: column; align-items: stretch; }
+}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Veille Urbanisme Paris</h1>
+    <p>Autorisations d'urbanisme — Tableau de bord</p>
+    <input type="password" id="pwd" placeholder="Mot de passe" autocomplete="off">
+    <button id="btn-login">Accéder</button>
+    <div class="login-error" id="login-error">Mot de passe incorrect</div>
+  </div>
+</div>
+
+<div id="app">
+  <a class="cta-link" target="_blank" rel="noopener"
+     href="https://v70-auth.paris.fr/auth/realms/paris/protocol/openid-connect/auth?client_id=moncompte&response_type=code&redirect_uri=https%3A%2F%2Fmoncompte.paris.fr%2Fmoncompte%2Fservlet%2Fplugins%2Foauth2%2Fcallback%3Fdata_client%3DauthData&scope=openid&state=95560f73ea40f5507fffd66456cf9481&nonce=76fa4ca05188e0bfed8cd16d6f4a4ac5">
+    <span class="badge">Accès direct</span>
+    <span>Se connecter à Mon Compte Paris</span>
+    <span class="arrow">→</span>
+  </a>
+  <div class="app-inner">
+  <div class="header">
+    <div class="header-left">
+      <h1>Veille Urbanisme Paris</h1>
+      <div class="subtitle" id="subtitle"></div>
+    </div>
+    <button class="btn-logout" id="btn-logout">Déconnexion</button>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot dot-yellow"></div> Enseigne / devanture</div>
+    <div class="legend-item"><div class="legend-dot dot-green"></div> Luxe</div>
+    <div class="legend-item"><span class="legend-pastille"></span> Ravalement sur rue / modification de devanture</div>
+  </div>
+  <div class="filters">
+    <span class="filter-label">Arrdt :</span>
+    <select id="f-arr">
+      <option value="">Tous</option>
+      <option value="__1to9__">1er → 9e (1 chiffre)</option>
+    </select>
+    <span class="filter-label">Couleur :</span>
+    <select id="f-color">
+      <option value="">Toutes</option>
+      <option value="enseigne">Enseigne (jaune)</option>
+      <option value="luxe">Luxe (vert)</option>
+    </select>
+    <span class="filter-label">Pastille :</span>
+    <select id="f-pst">
+      <option value="">Toutes</option>
+      <option value="1">Avec pastille (ravalement / devanture)</option>
+      <option value="0">Sans pastille</option>
+    </select>
+    <span class="filter-label">Recherche :</span>
+    <input type="text" id="f-search" placeholder="Adresse, demandeur, objet..." style="width:200px">
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div class="sort-info" id="sort-info"></div>
+  <div class="table-wrap">
+    <div id="loading"><div class="spinner"></div>Chargement des données depuis l'API…</div>
+    <table id="tbl" style="display:none">
+      <thead><tr>
+        <th data-col="pst" title="Pastille ravalement/devanture"></th>
+        <th data-col="ref">Référence<span class="sort-arrow"></span></th>
+        <th data-col="dem">Demandeur<span class="sort-arrow"></span></th>
+        <th data-col="adr">Adresse<span class="sort-arrow"></span></th>
+        <th data-col="arr">Arrdt<span class="sort-arrow"></span></th>
+        <th data-col="obj">Objet des travaux</th>
+        <th data-col="dd">Date demande<span class="sort-arrow"></span></th>
+        <th data-col="dr">Date réponse<span class="sort-arrow"></span></th>
+        <th data-col="ana">Analyse emprise</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="pagination" id="pag"></div>
+  </div>
+  </div>
+</div>
+
+<script>
+/* ───────────────────────── Auth ───────────────────────── */
+const PWD_HASH='504cef';
+function simpleHash(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0;}return Math.abs(h).toString(16).slice(0,6);}
+function tryLogin(){
+  if(simpleHash(document.getElementById('pwd').value)===PWD_HASH){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    localStorage.setItem('va',PWD_HASH);
+    initApp();
+  } else {
+    document.getElementById('login-error').style.display='block';
+  }
+}
+function logout(){localStorage.removeItem('va');location.reload();}
+document.getElementById('btn-login').addEventListener('click',tryLogin);
+document.getElementById('btn-logout').addEventListener('click',logout);
+document.getElementById('pwd').addEventListener('keypress',e=>{if(e.key==='Enter')tryLogin();});
+
+/* ───────────────────────── Classification (couleur) ───────────────────────── */
+const LUXE=['LVMH','HERMES','HERMÈS','CHANEL','DIOR','GUCCI','VUITTON','CARTIER','ROLEX','BULGARI','PRADA','SAINT LAURENT','BALENCIAGA','CELINE','CÉLINE','GIVENCHY','FENDI','BOTTEGA','TIFFANY','BURBERRY','VALENTINO','ARMANI','VERSACE','LORO PIANA','RIMOWA','LOEWE','BERLUTI','MONCLER','BREGUET','TAG HEUER','OMEGA','PIAGET','BOUCHERON','VAN CLEEF','CHOPARD','MOYNAT','LANVIN','BALMAIN','SWAROVSKI','JIMMY CHOO','MONTBLANC'];
+const RETAIL=['MCDONALD','STARBUCKS','ZARA','H&M','SEPHORA','FNAC','MONOPRIX','CARREFOUR','FRANPRIX','UNIQLO','NIKE','APPLE','DECATHLON','IKEA','LEROY MERLIN','PICARD','BOULANGER','DARTY','PRIMARK','NESPRESSO','FOOT LOCKER','CELIO','MASSIMO DUTTI','COURIR','BURGER KING','KFC','SUBWAY','PAUL ','FAUCHON','HEDIARD','LADUREE','LADURÉE','GALERIES LAFAYETTE','PRINTEMPS','BHV','BON MARCHE','SAMARITAINE','CITADIUM','TANG FRERES','NATURALIA','BIOCOOP','ALDI','LIDL','FIVE GUYS','AMORINO','LUSH','RITUALS','MUJI','HEMA','FLYING TIGER','NORMAL'];
+const ENS_RE=/\b(enseigne|devanture|vitrine|store.?banne|auvent|marquise|bandeau|caisson.?lumin|lettrage|logo.{0,5}fa[cç]ade|habillage.{0,5}fa[cç]ade|pose.{0,10}enseigne|remplacement.{0,10}enseigne)/i;
+
+function classify(r){
+  const obj=r.obj||'', dem=(r.dem||'').toUpperCase();
+  if(LUXE.some(b=>dem.includes(b))) return 'luxe';
+  if(ENS_RE.test(obj)||RETAIL.some(b=>dem.includes(b))) return 'enseigne';
+  return '';
+}
+
+/* ───────────────────────── Pastille : ravalement sur rue OU devanture ───────────────────────── */
+// Dossier flaggé si :
+//  • il mentionne un ravalement ET ne porte pas explicitement sur cour/intérieur uniquement, OU
+//  • il mentionne une modification de devanture / vitrine / store-banne / enseigne
+function isRavDev(obj){
+  if(!obj) return false;
+  const o = obj.toLowerCase();
+  // 1) Devanture / vitrine / enseigne / store : toujours flaggé (par nature côté rue)
+  if(/(devanture|vitrine|store.?banne|enseigne|marquise|auvent|bandeau|lettrage)/.test(o)) return true;
+  // 2) Ravalement : flaggé sauf si explicitement limité à la cour / intérieur
+  if(/ravalement/.test(o)) {
+    // Si ça mentionne explicitement "rue / boulevard / avenue / façade rue" → flaggé
+    if(/(rue|boulevard|avenue|fa[cç]ade.{0,15}(rue|boulevard|avenue)|sur\s*rue|c[oô]t[eé]\s*rue)/.test(o)) return true;
+    // Si ça concerne uniquement la cour/courette ou l'intérieur → on ne flag pas
+    if(/(cour|courette|int[ée]rieur)/.test(o) && !/(rue|boulevard|avenue|sur\s*rue|c[oô]t[eé]\s*rue)/.test(o)) return false;
+    // Sinon (ravalement sans précision) → on flag par défaut
+    return true;
+  }
+  return false;
+}
+
+/* ───────────────────────── Analyse emprise ───────────────────────── */
+function analyseEmprise(obj){
+  if(!obj) return [{l:'Non déterminé',c:'tag-inc'}];
+  const o=obj.toLowerCase();
+  const tags=[];
+  if(/[ée]chafaudage/i.test(o)) tags.push({l:'Échafaudage',c:'tag-ech'});
+  if(/palissade/i.test(o)) tags.push({l:'Palissade',c:'tag-pal'});
+  const surRue = /fa[cç]ade.{0,15}(rue|boulevard|avenue)|sur\s*(la\s*)?rue|côté\s*rue|donnant\s*sur\s*rue/i.test(o)
+              || /ravalement.{0,30}(rue|boulevard|avenue)/i.test(o)
+              || (/ravalement/i.test(o) && !/intérieur/i.test(o) && !/cour/i.test(o));
+  if(surRue) tags.push({l:'Sur rue',c:'tag-rue'});
+  if(/fa[cç]ade.{0,15}cour|sur\s*cour|côté\s*cour|ravalement.{0,20}cour/i.test(o)) tags.push({l:'Sur cour',c:'tag-cour'});
+  if(/intérieur|aménagement\s*int|travaux\s*int|cloisonnement|redistribution/i.test(o) && !tags.length) tags.push({l:'Intérieur',c:'tag-int'});
+  if(/devanture|enseigne|vitrine/i.test(o) && !tags.some(t=>t.l==='Sur rue')) tags.push({l:'Sur rue',c:'tag-rue'});
+  if(/toiture|couverture|terrasse.{0,10}(étanchéité|accessible)|surélévation/i.test(o)) tags.push({l:'Toiture',c:'tag-toi'});
+  if(!tags.length) tags.push({l:'Non déterminé',c:'tag-inc'});
+  return tags;
+}
+
+function tagsHtml(tags){return tags.map(t=>`<span class="tag ${t.c}">${t.l}</span>`).join(' ');}
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+function fmtDate(d){if(!d)return'';const p=d.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d;}
+
+/* ───────────────────────── State ───────────────────────── */
+let all=[], filtered=[], currentTab='demandes', sortCol='dd', sortAsc=false, page=0;
+const PER_PAGE=100;
+
+function isDemande(r){return !r.dr;}
+
+/* ───────────────────────── Fetch API Paris ───────────────────────── */
+const API_PARIS='https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/dossiers-recents-durbanisme/exports/json';
+function sixMonthsAgoIso(){
+  const d=new Date(); d.setMonth(d.getMonth()-6);
+  return d.toISOString().slice(0,10);
+}
+async function fetchParis(){
+  const since=sixMonthsAgoIso();
+  const where=encodeURIComponent(`date_depot>="${since}"`);
+  const url=`${API_PARIS}?where=${where}&limit=-1&order_by=${encodeURIComponent('date_depot DESC')}`;
+  const resp=await fetch(url);
+  if(!resp.ok) throw new Error('API Paris : HTTP '+resp.status);
+  const data=await resp.json();
+  return (data||[]).map(r=>({
+    ref:r.nom_dossier||'',
+    dem:r.demandeur||'',
+    adr:r.adresse||'',
+    arr:r.commune||0,
+    obj:r.objet||'',
+    dd:r.date_depot||'',
+    dr:r.date_decision||'',
+    etat:r.etat||''
+  }));
+}
+
+/* ───────────────────────── Render ───────────────────────── */
+function renderStats(){
+  const dem=all.filter(isDemande).length, rep=all.length-dem;
+  const lx=all.filter(r=>r._c==='luxe').length, en=all.filter(r=>r._c==='enseigne').length;
+  const pst=all.filter(r=>r._pst).length;
+  document.getElementById('stats').innerHTML=`
+    <div class="stat-card"><div class="label">Total</div><div class="value">${all.length.toLocaleString('fr')}</div></div>
+    <div class="stat-card"><div class="label">Demandes</div><div class="value">${dem.toLocaleString('fr')}</div></div>
+    <div class="stat-card"><div class="label">Réponses</div><div class="value">${rep.toLocaleString('fr')}</div></div>
+    <div class="stat-card"><div class="label" style="color:#856404">Enseignes</div><div class="value" style="color:#856404">${en}</div></div>
+    <div class="stat-card"><div class="label" style="color:#155724">Luxe</div><div class="value" style="color:#155724">${lx}</div></div>
+    <div class="stat-card"><div class="label" style="color:#cc5500">Ravalement / devanture</div><div class="value" style="color:#cc5500">${pst}</div></div>`;
+  return {dem,rep};
+}
+
+function renderTabs(c){
+  const tabs=document.getElementById('tabs');
+  tabs.innerHTML=`
+    <button class="tab ${currentTab==='demandes'?'active':''}" data-tab="demandes" type="button">Demandes<span class="cnt">${c.dem.toLocaleString('fr')}</span></button>
+    <button class="tab ${currentTab==='reponses'?'active':''}" data-tab="reponses" type="button">Réponses<span class="cnt">${c.rep.toLocaleString('fr')}</span></button>`;
+  tabs.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click',()=>switchTab(btn.dataset.tab));
+  });
+}
+
+function renderSortInfo(){
+  const labelMap={ref:'Référence',dem:'Demandeur',adr:'Adresse',arr:'Arrondissement',dd:'Date demande',dr:'Date réponse'};
+  const dir=sortAsc?'plus ancien → plus récent':'plus récent → plus ancien';
+  const tabName=currentTab==='demandes'?'Demandes (en cours)':'Réponses (instruites)';
+  document.getElementById('sort-info').innerHTML=
+    `<b>Onglet :</b> ${tabName} &nbsp;·&nbsp; <b>Tri :</b> ${labelMap[sortCol]||sortCol} <b>(${dir})</b>`;
+}
+
+function applyFilters(){
+  let f = currentTab==='demandes' ? all.filter(isDemande) : all.filter(r=>!isDemande(r));
+  const arr=document.getElementById('f-arr').value;
+  if(arr==='__1to9__'){
+    f=f.filter(r=>{const n=Number(r.arr)||0;return n>=1 && n<=9;});
+  } else if(arr){
+    f=f.filter(r=>String(r.arr)===arr);
+  }
+  const col=document.getElementById('f-color').value;
+  if(col)f=f.filter(r=>r._c===col);
+  const pst=document.getElementById('f-pst').value;
+  if(pst==='1') f=f.filter(r=>r._pst);
+  else if(pst==='0') f=f.filter(r=>!r._pst);
+  const q=document.getElementById('f-search').value.toLowerCase().trim();
+  if(q)f=f.filter(r=>[r.ref,r.dem,r.adr,r.obj].some(v=>(v||'').toLowerCase().includes(q)));
+  f.sort((a,b)=>{
+    let va=a[sortCol], vb=b[sortCol];
+    if(sortCol==='arr'){
+      va=Number(va)||0; vb=Number(vb)||0;
+      return sortAsc ? va-vb : vb-va;
+    }
+    if(sortCol==='pst'){
+      va=a._pst?1:0; vb=b._pst?1:0;
+      return sortAsc ? va-vb : vb-va;
+    }
+    va=va||''; vb=vb||'';
+    if(va===vb) return 0;
+    if(va==='') return 1;
+    if(vb==='') return -1;
+    return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+  filtered=f;
+  page=0;
+  renderSortInfo();
+  updateSortArrows();
+}
+
+function updateSortArrows(){
+  document.querySelectorAll('thead th').forEach(th=>{
+    th.classList.remove('active-sort');
+    const span=th.querySelector('.sort-arrow');
+    if(span) span.textContent='';
+  });
+  const th=document.querySelector(`thead th[data-col="${sortCol}"]`);
+  if(th){
+    th.classList.add('active-sort');
+    const span=th.querySelector('.sort-arrow');
+    if(span) span.textContent = sortAsc ? ' ↑' : ' ↓';
+  }
+}
+
+function renderTable(){
+  const start=page*PER_PAGE, end=start+PER_PAGE;
+  const slice=filtered.slice(start,end);
+  const tbody=document.getElementById('tbody');
+  tbody.innerHTML=slice.map((r,i)=>{
+    const rowCls = r._c==='enseigne'?'row-enseigne' : r._c==='luxe'?'row-luxe' : '';
+    const id='obj-'+(start+i);
+    const pastille = r._pst ? `<span class="pastille" title="Ravalement sur rue / modification de devanture"></span>` : '';
+    return `<tr class="${rowCls}">
+      <td class="td-pst">${pastille}</td>
+      <td class="td-ref">${esc(r.ref)}</td>
+      <td class="td-dem">${esc(r.dem)}</td>
+      <td class="td-adr">${esc(r.adr)}</td>
+      <td class="td-arr">${r.arr?r.arr+'e':''}</td>
+      <td class="td-obj"><div class="obj-text" id="${id}">${esc(r.obj)}</div><button class="btn-expand" data-target="${id}" type="button">▼</button></td>
+      <td class="td-dd">${fmtDate(r.dd)}</td>
+      <td class="td-dr">${fmtDate(r.dr)}</td>
+      <td class="td-ana">${tagsHtml(r._emp)}</td>
+    </tr>`;
+  }).join('');
+  tbody.querySelectorAll('.btn-expand').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const el=document.getElementById(btn.dataset.target);
+      el.classList.toggle('expanded');
+      btn.textContent=el.classList.contains('expanded')?'▲':'▼';
+    });
+  });
+  const totalPages=Math.max(1,Math.ceil(filtered.length/PER_PAGE));
+  document.getElementById('pag').innerHTML=`
+    <button id="pag-prev" ${page===0?'disabled':''}>← Précédent</button>
+    <span>Page ${page+1} / ${totalPages} (${filtered.length} résultats)</span>
+    <button id="pag-next" ${page>=totalPages-1?'disabled':''}>Suivant →</button>`;
+  const prev=document.getElementById('pag-prev'), next=document.getElementById('pag-next');
+  if(prev) prev.addEventListener('click',()=>{page--;renderTable();window.scrollTo({top:0,behavior:'smooth'});});
+  if(next) next.addEventListener('click',()=>{page++;renderTable();window.scrollTo({top:0,behavior:'smooth'});});
+}
+
+function switchTab(tab){
+  if(tab===currentTab) return;
+  currentTab=tab;
+  sortCol = tab==='demandes' ? 'dd' : 'dr';
+  sortAsc = false;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  applyFilters();
+  renderTable();
+}
+
+// Tri par clic sur l'en-tête.
+// Pour la colonne "pst" (pastille) : 1er clic → avec pastille en haut (sortAsc=false).
+// Pour les autres colonnes : 1er clic → ordre ASC (sortAsc=false par défaut côté date pour DESC).
+document.querySelectorAll('thead th[data-col]').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const col=th.dataset.col;
+    if(col==='obj'||col==='ana') return;
+    if(sortCol===col) sortAsc=!sortAsc;
+    else { sortCol=col; sortAsc=false; } // par défaut : ordre décroissant (pastilles, dates, refs récentes en haut)
+    applyFilters();
+    renderTable();
+  });
+});
+
+document.getElementById('f-arr').addEventListener('change',()=>{applyFilters();renderTable();});
+document.getElementById('f-color').addEventListener('change',()=>{applyFilters();renderTable();});
+document.getElementById('f-pst').addEventListener('change',()=>{applyFilters();renderTable();});
+let st;document.getElementById('f-search').addEventListener('input',()=>{clearTimeout(st);st=setTimeout(()=>{applyFilters();renderTable();},300);});
+
+function populateArrondissementFilter(){
+  const sel=document.getElementById('f-arr');
+  sel.innerHTML = '<option value="">Tous</option><option value="__1to9__">1er → 9e (1 chiffre)</option>';
+  const arrs=[...new Set(all.map(r=>Number(r.arr)).filter(n=>n>=1&&n<=20))].sort((a,b)=>a-b);
+  arrs.forEach(a=>{
+    const o=document.createElement('option');
+    o.value=String(a);
+    o.textContent = a===1 ? '1er' : a+'e';
+    sel.appendChild(o);
+  });
+}
+
+/* ───────────────────────── Init ───────────────────────── */
+async function initApp(){
+  document.getElementById('subtitle').textContent='Chargement…';
+  try{
+    all = await fetchParis();
+    all.forEach(r=>{
+      r._c = classify(r);
+      r._pst = isRavDev(r.obj);
+      r._emp = analyseEmprise(r.obj);
+    });
+    const since=sixMonthsAgoIso();
+    document.getElementById('subtitle').textContent =
+      `${all.length.toLocaleString('fr')} dossiers depuis le ${fmtDate(since)} · API opendata.paris.fr · 6 derniers mois glissants`;
+    document.getElementById('loading').style.display='none';
+    document.getElementById('tbl').style.display='table';
+    const c=renderStats(); renderTabs(c); populateArrondissementFilter();
+    sortCol='dd'; sortAsc=false;
+    applyFilters(); renderTable();
+  } catch(err) {
+    document.getElementById('loading').innerHTML=`<p style="color:#c0392b;font-weight:600">Erreur API : ${esc(err.message)}</p>
+      <p style="margin-top:10px;font-size:12px;color:#888">L'API Open Data Paris est peut-être temporairement indisponible. Recharge la page dans quelques instants.</p>`;
+  }
+}
+
+if(localStorage.getItem('va')===PWD_HASH){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  initApp();
+}
+</script>
+</body>
+</html>
